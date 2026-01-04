@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Tattoo, Language } from '../types';
 import { db } from '../services/db';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '../src/constants';
 
 interface Props {
   language: Language;

@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-import { AI_FUSION_PROMPT } from "../constants";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { AI_FUSION_PROMPT } from "../src/constants";
 
 // 初始化 AI 客户端
 export const createGenAIClient = (apiKey: string) => {
@@ -41,11 +41,11 @@ export const generateFusion = async (
         temperature: 0.4,
         // 关键：针对纹身/皮肤图像，必须放宽安全限制
         safetySettings: [
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY, threshold: HarmBlockThreshold.BLOCK_NONE },
         ],
       }
     });

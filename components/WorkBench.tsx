@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Language, Tattoo, CanvasObject, UserConfig, DeviceMode } from '../types';
-import { TRANSLATIONS, MAX_UPLOAD_SIZE_MB, MAX_FREE_API_CALLS, DEFAULT_API_KEY } from '../constants';
+import { TRANSLATIONS, MAX_UPLOAD_SIZE_MB, MAX_FREE_API_CALLS, DEFAULT_API_KEY } from '../src/constants';
 import { generateFusion } from '../services/geminiService';
 import { compressImage } from '../utils/imageUtils';
 import TattooGallery from './TattooGallery';
@@ -741,82 +741,40 @@ const WorkBench: React.FC<Props> = ({ language, config, onUpdateConfig, onBack }
     let apiKeyToUse = '';
     if (remainingCalls > 0) {
       apiKeyToUse = DEFAULT_API_KEY;
-      if (!apiKeyToUse) { showToast('error', 'System configuration error: Missing DEFAULT_API_KEY'); return; }
+      if (!apiKeyToUse) { showToast('error', 'System configuration error'); return; }
     } else {
       if (config.userApiKey) apiKeyToUse = config.userApiKey;
       else { showToast('info', t.apiLimitWait); setShowSettings(true); return; }
     }
-    
     setIsProcessing(true);
-    
     try {
-      // 1. 准备导出 Canvas，限制最大分辨率以加快 AI 处理速度并减少错误
-      const MAX_DIMENSION = 1024;
-      let exportWidth = bgImage.width;
-      let exportHeight = bgImage.height;
-      
-      if (exportWidth > MAX_DIMENSION || exportHeight > MAX_DIMENSION) {
-          const ratio = Math.min(MAX_DIMENSION / exportWidth, MAX_DIMENSION / exportHeight);
-          exportWidth = Math.round(exportWidth * ratio);
-          exportHeight = Math.round(exportHeight * ratio);
-      }
-
       const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = exportWidth;
-      exportCanvas.height = exportHeight;
+      exportCanvas.width = bgImage.width;
+      exportCanvas.height = bgImage.height;
       const ctx = exportCanvas.getContext('2d');
       if (!ctx) throw new Error("Canvas context failed");
-      
-      // 绘制背景 (缩放)
-      ctx.drawImage(bgImage, 0, 0, exportWidth, exportHeight);
-      
-      // 绘制纹身 (缩放)
-      const scaleX = exportWidth / bgImage.width;
-      const scaleY = exportHeight / bgImage.height;
-
+      ctx.drawImage(bgImage, 0, 0);
       canvasObjects.forEach(obj => {
           ctx.save();
-          // 坐标变换
-          ctx.translate(obj.x * scaleX, obj.y * scaleY);
+          ctx.translate(obj.x, obj.y);
           ctx.rotate((obj.rotation * Math.PI) / 180);
-          
-          // 尺寸变换
-          const drawWidth = obj.width * scaleX;
-          const drawHeight = obj.height * scaleY;
-          
-          ctx.drawImage(obj.image, -drawWidth/2, -drawHeight/2, drawWidth, drawHeight);
+          ctx.drawImage(obj.image, -obj.width/2, -obj.height/2, obj.width, obj.height);
           ctx.restore();
       });
-      
-      // 2. 导出图片数据
-      const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.85);
+      const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.9);
       const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
-      
-      // 3. 调用 AI 融合
       const resultBase64 = await generateFusion(apiKeyToUse, base64Data);
-      
-      // 4. 处理结果
       const newImg = new Image();
       newImg.onload = () => {
         setBgImage(newImg);
-        setCanvasObjects([]); // 清空纹身贴纸，因为已经融合到背景中了
+        setCanvasObjects([]); 
         setIsProcessing(false);
         onUpdateConfig({ apiCallCount: config.apiCallCount + 1 });
         addToHistory([], newImg.src);
         showToast('success', t.genSuccess);
       };
-      newImg.onerror = () => {
-         throw new Error("Failed to load generated image.");
-      };
       newImg.src = `data:image/jpeg;base64,${resultBase64}`;
-
-    } catch (error: any) { 
-        console.error("Fusion failed:", error); 
-        setIsProcessing(false); 
-        // 显示具体的错误信息
-        const errorMsg = error.message || t.genFail;
-        showToast('error', errorMsg); 
-    }
+    } catch (error: any) { console.error("Fusion failed:", error); setIsProcessing(false); showToast('error', error.message || t.genFail); }
   };
   
   const handleDownload = () => {

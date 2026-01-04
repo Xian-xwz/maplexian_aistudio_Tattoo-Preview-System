@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserConfig, Language, Theme } from '../types';
-import { TRANSLATIONS, MAX_FREE_API_CALLS } from '../constants';
+import { TRANSLATIONS, MAX_FREE_API_CALLS } from '../src/constants';
 
 interface Props {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import { Tattoo, UserConfig, Language, DeviceMode, Theme } from '../types';
-import { DEFAULT_TATTOOS } from '../constants';
+import { DEFAULT_TATTOOS } from '../src/constants';
 
 // --- 数据库表结构定义 ---
 

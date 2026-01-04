@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language, DeviceMode, UserConfig, Theme } from './types';
-import { TRANSLATIONS } from './constants';
+import { TRANSLATIONS } from './src/constants';
 import LanguageSelector from './components/LanguageSelector';
 import WorkBench from './components/WorkBench';
 
@@ -13,12 +13,25 @@ const App: React.FC = () => {
   
   // 从 localStorage 初始化配置
   const [config, setConfig] = useState<UserConfig>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 简单验证 language 是否有效，无效则回退默认
+        if (parsed.language && Object.values(Language).includes(parsed.language)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse config", e);
+    }
+    
+    // 默认配置
+    return {
       language: Language.ZH_TW,
       deviceMode: DeviceMode.WEB,
       theme: Theme.LIGHT,
-      apiCallCount: 0, // 初始已调用次数为 0，剩余次数即为 Max (2)
+      apiCallCount: 0,
       userApiKey: null
     };
   });
@@ -38,7 +51,8 @@ const App: React.FC = () => {
     setConfig(prev => ({ ...prev, ...newConfig }));
   };
 
-  const t = TRANSLATIONS[config.language];
+  // 安全获取翻译对象，防止 localStorage 脏数据导致 crash
+  const t = TRANSLATIONS[config.language] || TRANSLATIONS[Language.ZH_TW];
 
   // --- 渲染逻辑 ---
 

@@ -1,12 +1,9 @@
-import { Language, Tattoo } from './types';
+import { Language, Tattoo } from '../types';
 
 // 1. 环境变量安全读取
 const getApiKey = (): string => {
   // 核心修复：
-  // 在 Vite 中，'process.env.API_KEY' 会被 define 插件直接替换为字符串常量 (例如 "AIza...")
-  // 因此我们不需要检查 process 对象是否存在，直接读取即可。
-  // 如果检查 typeof process，反而会导致浏览器环境下代码块被跳过。
-  
+  // 在 Vite 中，'process.env.API_KEY' 会被 define 插件直接替换为字符串常量
   try {
     // @ts-ignore
     const key = process.env.API_KEY;
@@ -33,7 +30,7 @@ export const DEFAULT_API_KEY = getApiKey();
 export const MAX_FREE_API_CALLS = 10;
 export const MAX_UPLOAD_SIZE_MB = 10;
 
-// 3. AI 提示词 (优化版 - 强调写实感和融合)
+// 3. AI 提示词 (优化版)
 export const AI_FUSION_PROMPT = `
 You are an expert digital tattoo artist.
 I have provided an image that shows a person with a digital tattoo overlay (sticker-like).
