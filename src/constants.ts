@@ -1,20 +1,24 @@
-// 1. 定义语言常量对象（修复第 24 行的点语法报错）
-export const Language = {
-  ZH_TW: 'zh' as const,
-  EN: 'en' as const
-};
+import { Language, Tattoo } from './types';
 
-// 2. 定义 Language 类型
-export type LanguageType = typeof Language[keyof typeof Language];
-
-// 3. 系统默认配置
+// 系统默认配置
 export const MAX_FREE_API_CALLS = 2;
 export const MAX_UPLOAD_SIZE_MB = 10;
 
-// 4. 读取环境变量中的默认 API Key (解决之前的红框报错)
-// @ts-ignore
-export const DEFAULT_API_KEY = (import.meta as any).env.VITE_DEFAULT_API_KEY || '';
+// 安全地获取 Key 的函数
+const getApiKey = () => {
+  // 尝试读取环境变量 (Vite/Vercel)
+  try {
+    // 使用 type assertion 和 optional chaining 防止 undefined 错误
+    // 解决: Uncaught TypeError: Cannot read properties of undefined (reading 'VITE_DEFAULT_API_KEY')
+    // @ts-ignore
+    const envKey = (import.meta as any).env?.VITE_DEFAULT_API_KEY;
+    return envKey || '';
+  } catch (e) {
+    return '';
+  }
+};
 
+export const DEFAULT_API_KEY = getApiKey();
 
 // AI 生成提示词
 export const AI_FUSION_PROMPT = `
