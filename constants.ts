@@ -1,14 +1,42 @@
-import { Language, Tattoo } from './types';
+// 1. 核心类型定义 (解决 TS2307 找不到模块报错)
+export const Language = {
+  ZH_TW: 'zh_tw' as const,
+  ZH_CN: 'zh_cn' as const,
+  EN: 'en' as const
+};
 
-// 系统默认配置
+export type LanguageType = typeof Language[keyof typeof Language];
+
+export interface Tattoo {
+  id: string;
+  name: string;
+  imageBase64: string;
+  isDefault?: boolean;
+}
+
+// 2. 系统默认配置
 export const MAX_FREE_API_CALLS = 2;
 export const MAX_UPLOAD_SIZE_MB = 10;
-// 读取环境变量中的默认 API Key
-// 根据平台要求，优先使用 process.env.API_KEY
-// @ts-ignore 忽略 process 类型检查，假设构建环境会自动替换
-export const DEFAULT_API_KEY = import.meta.env.VITE_DEFAULT_API_KEY || '';
 
-// AI 生成提示词
+/**
+ * 3. 终极兼容性 Key 读取逻辑
+ * 解决 "Cannot read properties of undefined (reading 'VITE_DEFAULT_API_KEY')" 报错
+ */
+const getApiKey = (): string => {
+  try {
+    // 采用层级探测，避免直接访问 import.meta 导致的致命崩溃
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+      return (import.meta as any).env.VITE_DEFAULT_API_KEY || '';
+    }
+    return '';
+  } catch (e) {
+    return '';
+  }
+};
+
+export const DEFAULT_API_KEY = getApiKey();
+
+// 4. AI 生成提示词
 export const AI_FUSION_PROMPT = `
 This image shows a person with a digital tattoo overlay. 
 Please refine this image to make the tattoo look like a REAL tattoo permanently inked on the skin.
@@ -20,10 +48,10 @@ Please refine this image to make the tattoo look like a REAL tattoo permanently 
 Return only the processed image.
 `;
 
-// 多语言字典
+// 5. 多语言字典 (包含完整的繁体和简体内容)
 export const TRANSLATIONS = {
   [Language.ZH_TW]: {
-    title: 'InkPreview AI 纹身預覽',
+    title: 'InkPreview AI 紋身預覽',
     subtitle: '上傳照片，預覽您的下一個紋身',
     start: '開始體驗',
     webMode: '網頁版',
@@ -36,7 +64,7 @@ export const TRANSLATIONS = {
     download: '下載結果',
     settings: '設置',
     reset: '清空紋身',
-    delete: '刪除選中', // Added
+    delete: '刪除選中',
     apiKeyPlaceholder: '輸入您的 Google Gemini API Key',
     save: '保存',
     processing: 'AI 正在融合...',
@@ -80,7 +108,6 @@ export const TRANSLATIONS = {
     callsUsed: '已調用次數: {count} (免費額度: {limit})',
     getApiKeyLink: '在此獲取 API Key',
     cancel: '取消',
-    // Theme
     appearance: '外觀',
     lightMode: '亮色模式',
     darkMode: '暗色模式',
@@ -99,7 +126,7 @@ export const TRANSLATIONS = {
     download: '下载结果',
     settings: '设置',
     reset: '清空纹身',
-    delete: '删除选中', // Added
+    delete: '删除选中',
     apiKeyPlaceholder: '输入您的 Google Gemini API Key',
     save: '保存',
     processing: 'AI 正在融合...',
@@ -143,7 +170,6 @@ export const TRANSLATIONS = {
     callsUsed: '已调用次数: {count} (免费额度: {limit})',
     getApiKeyLink: '在此获取 API Key',
     cancel: '取消',
-    // Theme
     appearance: '外观',
     lightMode: '亮色模式',
     darkMode: '暗色模式',
@@ -162,7 +188,7 @@ export const TRANSLATIONS = {
     download: 'Download',
     settings: 'Settings',
     reset: 'Clear Tattoos',
-    delete: 'Delete Selected', // Added
+    delete: 'Delete Selected',
     apiKeyPlaceholder: 'Enter your Google Gemini API Key',
     save: 'Save',
     processing: 'AI Fusion...',
@@ -206,50 +232,8 @@ export const TRANSLATIONS = {
     callsUsed: 'Calls used: {count} (Free limit: {limit})',
     getApiKeyLink: 'Get API Key here',
     cancel: 'Cancel',
-    // Theme
     appearance: 'Appearance',
     lightMode: 'Light Mode',
     darkMode: 'Dark Mode',
   }
 };
-
-// --- 默认纹身数据生成 ---
-
-const svgToDataUrl = (svgContent: string): string => {
-  return `data:image/svg+xml;base64,${btoa(svgContent)}`;
-};
-
-// 1. 经典星星
-const starSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-
-// 2. 爱心图腾
-const heartTribalSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/><path d="M12 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="white"/></svg>`;
-
-// 3. 极简玫瑰
-const roseSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0"/><path d="M12 12c0 4-4 4-4 0s4-4 4 0z"/></svg>`;
-
-// 4. 骷髅头
-const skullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2c-4.42 0-8 3.58-8 8 0 2.88 1.54 5.4 3.88 6.78L7 22h2v-2h6v2h2l-.88-5.22C18.46 15.4 20 12.88 20 10c0-4.42-3.58-8-8-8zm-4 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`;
-
-// 5. 抽象龙
-const dragonSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M20 2c-2 0-4 1-5 3-2 4-5 5-8 5-2 0-4-1-5-2 1 3 3 5 5 5 4 0 7-2 9-5 1-1.5 2-2 4-2 1 0 2 .5 2 1.5S21 9 20 9c-1 0-1.5-.5-2-1-.5 1 0 3 2 3 2.5 0 4-2.5 4-5S22 2 20 2z"/></svg>`;
-
-// 6. 蝴蝶
-const butterflySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2s2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 2c-3.87 0-7 3.13-7 7 0 2.5 1.4 4.8 3.6 6.1-.2-.6-.4-1.3-.5-2 0-3.31 2.69-6 6-6V5h-2.1zM14 5v5.1c3.31 0 6 2.69 6 6 0 .7-.2 1.4-.5 2 2.2-1.3 3.6-3.6 3.6-6.1 0-3.87-3.13-7-7-7h-2.1z"/></svg>`;
-
-// 7. 船锚
-const anchorSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm1 6v3h3v2h-3v5c0 1.1-.9 2-2 2s-2-.9-2-2v-5H6v-2h3V8h6zM6 18c0 1.65 1.35 3 3 3v-2c-.55 0-1-.45-1-1H6zm12 0h-2c0 .55-.45 1-1 1v2c1.65 0 3-1.35 3-3z"/></svg>`;
-
-// 8. 闪电
-const boltSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`;
-
-export const DEFAULT_TATTOOS: Tattoo[] = [
-  { id: 'def_star', name: 'Classic Star', imageBase64: svgToDataUrl(starSvg), isDefault: true },
-  { id: 'def_heart', name: 'Tribal Heart', imageBase64: svgToDataUrl(heartTribalSvg), isDefault: true },
-  { id: 'def_rose', name: 'Minimal Rose', imageBase64: svgToDataUrl(roseSvg), isDefault: true },
-  { id: 'def_skull', name: 'Skull', imageBase64: svgToDataUrl(skullSvg), isDefault: true },
-  { id: 'def_dragon', name: 'Dragon', imageBase64: svgToDataUrl(dragonSvg), isDefault: true },
-  { id: 'def_butterfly', name: 'Butterfly', imageBase64: svgToDataUrl(butterflySvg), isDefault: true },
-  { id: 'def_anchor', name: 'Anchor', imageBase64: svgToDataUrl(anchorSvg), isDefault: true },
-  { id: 'def_bolt', name: 'Lightning', imageBase64: svgToDataUrl(boltSvg), isDefault: true },
-];
