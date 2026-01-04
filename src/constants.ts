@@ -1,11 +1,20 @@
-export type Language = 'zh' | 'en';
-// 系统默认配置
+// 1. 定义语言常量对象（修复第 24 行的点语法报错）
+export const Language = {
+  ZH_TW: 'zh' as const,
+  EN: 'en' as const
+};
+
+// 2. 定义 Language 类型
+export type LanguageType = typeof Language[keyof typeof Language];
+
+// 3. 系统默认配置
 export const MAX_FREE_API_CALLS = 2;
 export const MAX_UPLOAD_SIZE_MB = 10;
-// 读取环境变量中的默认 API Key
-// 根据平台要求，优先使用 process.env.API_KEY
-// @ts-ignore 忽略 process 类型检查，假设构建环境会自动替换
-export const DEFAULT_API_KEY = import.meta.env.VITE_DEFAULT_API_KEY || '';
+
+// 4. 读取环境变量中的默认 API Key (解决之前的红框报错)
+// @ts-ignore
+export const DEFAULT_API_KEY = (import.meta as any).env.VITE_DEFAULT_API_KEY || '';
+
 
 // AI 生成提示词
 export const AI_FUSION_PROMPT = `
