@@ -36,7 +36,7 @@ export const TRANSLATIONS = {
     download: '下載結果',
     settings: '設置',
     reset: '清空紋身',
-    delete: '刪除選中', // Added
+    delete: '刪除選中',
     apiKeyPlaceholder: '輸入您的 Google Gemini API Key',
     save: '保存',
     processing: 'AI 正在融合...',
@@ -99,7 +99,7 @@ export const TRANSLATIONS = {
     download: '下载结果',
     settings: '设置',
     reset: '清空纹身',
-    delete: '删除选中', // Added
+    delete: '删除选中',
     apiKeyPlaceholder: '输入您的 Google Gemini API Key',
     save: '保存',
     processing: 'AI 正在融合...',
@@ -162,7 +162,7 @@ export const TRANSLATIONS = {
     download: 'Download',
     settings: 'Settings',
     reset: 'Clear Tattoos',
-    delete: 'Delete Selected', // Added
+    delete: 'Delete Selected',
     apiKeyPlaceholder: 'Enter your Google Gemini API Key',
     save: 'Save',
     processing: 'AI Fusion...',

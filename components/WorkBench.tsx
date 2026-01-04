@@ -334,8 +334,10 @@ const WorkBench: React.FC<Props> = ({ language, config, onUpdateConfig, onBack }
   // 判断点是否在对象内部（考虑旋转）
   const isPointInObject = (obj: CanvasObject, worldX: number, worldY: number): boolean => {
       const { x: localX, y: localY } = worldToLocal(worldX, worldY, obj);
-      return localX >= -obj.width / 2 && localX <= obj.width / 2 &&
-             localY >= -obj.height / 2 && localY <= obj.height / 2;
+      // 增加 10px (屏幕空间) 的点击容差，提升移动端点选体验
+      const tolerance = 10 / view.scale; 
+      return localX >= -obj.width / 2 - tolerance && localX <= obj.width / 2 + tolerance &&
+             localY >= -obj.height / 2 - tolerance && localY <= obj.height / 2 + tolerance;
   };
 
   // 计算动态热区大小（保证小对象可操作）
