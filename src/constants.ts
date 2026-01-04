@@ -1,5 +1,4 @@
-import { Language, Tattoo } from './types';
-
+export type Language = 'zh' | 'en';
 // 系统默认配置
 export const MAX_FREE_API_CALLS = 2;
 export const MAX_UPLOAD_SIZE_MB = 10;
