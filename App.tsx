@@ -4,25 +4,28 @@ import { TRANSLATIONS } from './constants';
 import LanguageSelector from './components/LanguageSelector';
 import WorkBench from './components/WorkBench';
 
+// 使用新的存储 Key 以强制重置旧缓存
+const STORAGE_KEY = 'inkpreview_config_v1.1';
+
 const App: React.FC = () => {
   // --- 状态管理 ---
   const [hasStarted, setHasStarted] = useState(false);
   
   // 从 localStorage 初始化配置
   const [config, setConfig] = useState<UserConfig>(() => {
-    const saved = localStorage.getItem('inkpreview_config');
+    const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : {
       language: Language.ZH_TW,
       deviceMode: DeviceMode.WEB,
       theme: Theme.LIGHT,
-      apiCallCount: 0,
+      apiCallCount: 0, // 初始已调用次数为 0，剩余次数即为 Max (2)
       userApiKey: null
     };
   });
 
   // 持久化配置
   useEffect(() => {
-    localStorage.setItem('inkpreview_config', JSON.stringify(config));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }, [config]);
 
   // 监听并应用主题变化
