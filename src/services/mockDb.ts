@@ -17,6 +17,10 @@ export interface UserTableItem {
 export interface SettingsTableItem extends UserConfig {
   id: string; // 通常主键为 'default'
   language: Language;
+  deviceMode: DeviceMode;
+  theme: Theme;
+  apiCallCount: number;
+  userApiKey: string | null;
 }
 
 // 历史记录表行数据

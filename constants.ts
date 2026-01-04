@@ -1,25 +1,27 @@
-// 1. 核心类型定义
-export const Language = {
-  ZH_TW: 'zh-TW' as const, // 修正为 zh-TW 以匹配组件逻辑
-  ZH_CN: 'zh-CN' as const,
-  EN: 'en' as const
-};
+import { Language, Tattoo } from './types';
 
-export type LanguageType = typeof Language[keyof typeof Language];
-
-export interface Tattoo {
-  id: string;
-  name: string;
-  imageBase64: string;
-  isDefault?: boolean;
-}
-
-// 2. 环境变量安全读取
+// 1. 环境变量安全读取
 const getApiKey = (): string => {
+  // 核心修复：
+  // 在 Vite 中，'process.env.API_KEY' 会被 define 插件直接替换为字符串常量 (例如 "AIza...")
+  // 因此我们不需要检查 process 对象是否存在，直接读取即可。
+  // 如果检查 typeof process，反而会导致浏览器环境下代码块被跳过。
+  
   try {
     // @ts-ignore
-    const env = (import.meta as any).env;
-    return env?.VITE_DEFAULT_API_KEY || '';
+    const key = process.env.API_KEY;
+    if (key && typeof key === 'string' && key.length > 0) {
+      return key;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 备用：尝试从 Vite 特有的 import.meta.env 获取
+  try {
+    // @ts-ignore
+    const env = import.meta.env;
+    return env?.VITE_DEFAULT_API_KEY || env?.API_KEY || '';
   } catch (e) {
     return '';
   }
@@ -27,14 +29,26 @@ const getApiKey = (): string => {
 
 export const DEFAULT_API_KEY = getApiKey();
 
-// 3. 系统配置
-export const MAX_FREE_API_CALLS = 2;
+// 2. 系统配置 (增加测试额度)
+export const MAX_FREE_API_CALLS = 10;
 export const MAX_UPLOAD_SIZE_MB = 10;
 
-// 4. AI 提示词
-export const AI_FUSION_PROMPT = `This image shows a person with a digital tattoo overlay. Please refine this image to make the tattoo look like a REAL tattoo permanently inked on the skin.`;
+// 3. AI 提示词 (优化版 - 强调写实感和融合)
+export const AI_FUSION_PROMPT = `
+You are an expert digital tattoo artist.
+I have provided an image that shows a person with a digital tattoo overlay (sticker-like).
+Your task is to generate a realistic photo where the tattoo looks permanently inked on the skin.
 
-// 5. 完整多语言字典 (使用 zh-TW 作为 Key 解决组件报错)
+Instructions:
+1. Analyze the body part's curvature and lighting in the image.
+2. Warp and shade the tattoo to match the skin's surface and muscle definition.
+3. Apply natural skin texture (pores, slight redness) OVER the tattoo ink.
+4. Slightly fade the tattoo edges to remove the "sticker" look.
+5. PRESERVE the person's identity, face, background, and clothing exactly as they are. Only modify the tattoo area.
+6. Return the final realistic image. Do not provide any text explanation.
+`;
+
+// 4. 完整多语言字典
 export const TRANSLATIONS = {
   [Language.ZH_TW]: {
     title: 'InkPreview AI 紋身預覽',
@@ -60,7 +74,7 @@ export const TRANSLATIONS = {
     errorLoad: '圖片加載失敗，請重試',
     reupload: '重新上傳',
     genSuccess: '生成成功！',
-    genFail: '生成失敗，已切換至本地預覽模式。',
+    genFail: '生成失敗，請檢查 API Key 或重試。',
     noApiKey: '請在設置中配置 API Key 以繼續使用。',
     guideTitle: '快速指南',
     guideStep1: '1. 上傳您的照片',
@@ -122,7 +136,7 @@ export const TRANSLATIONS = {
     errorLoad: '图片加载失败，请重试',
     reupload: '重新上传',
     genSuccess: '生成成功！',
-    genFail: '生成失败，已切换至本地预览模式。',
+    genFail: '生成失败，请检查 API Key 或重试。',
     noApiKey: '请在设置中配置 API Key 以继续使用。',
     guideTitle: '快速指南',
     guideStep1: '1. 上传您的照片',
@@ -184,7 +198,7 @@ export const TRANSLATIONS = {
     errorLoad: 'Failed to load image, please try again',
     reupload: 'Re-upload',
     genSuccess: 'Generation Successful!',
-    genFail: 'Generation failed, switched to local preview.',
+    genFail: 'Generation failed. Check API Key.',
     noApiKey: 'Please configure API Key in settings to continue.',
     guideTitle: 'Quick Guide',
     guideStep1: '1. Upload your photo',
@@ -224,10 +238,24 @@ export const TRANSLATIONS = {
   }
 };
 
-// 6. 核心数据导出 (解决 mockDb.ts 找不到 DEFAULT_TATTOOS 报错)
+// 5. 核心数据导出
 const svgToDataUrl = (svgContent: string): string => `data:image/svg+xml;base64,${btoa(svgContent)}`;
 const starSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+const heartTribalSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/><path d="M12 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="white"/></svg>`;
+const roseSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0"/><path d="M12 12c0 4-4 4-4 0s4-4 4 0z"/></svg>`;
+const skullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2c-4.42 0-8 3.58-8 8 0 2.88 1.54 5.4 3.88 6.78L7 22h2v-2h6v2h2l-.88-5.22C18.46 15.4 20 12.88 20 10c0-4.42-3.58-8-8-8zm-4 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`;
+const dragonSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M20 2c-2 0-4 1-5 3-2 4-5 5-8 5-2 0-4-1-5-2 1 3 3 5 5 5 4 0 7-2 9-5 1-1.5 2-2 4-2 1 0 2 .5 2 1.5S21 9 20 9c-1 0-1.5-.5-2-1-.5 1 0 3 2 3 2.5 0 4-2.5 4-5S22 2 20 2z"/></svg>`;
+const butterflySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2s2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 2c-3.87 0-7 3.13-7 7 0 2.5 1.4 4.8 3.6 6.1-.2-.6-.4-1.3-.5-2 0-3.31 2.69-6 6-6V5h-2.1zM14 5v5.1c3.31 0 6 2.69 6 6 0 .7-.2 1.4-.5 2 2.2-1.3 3.6-3.6 3.6-6.1 0-3.87-3.13-7-7-7h-2.1z"/></svg>`;
+const anchorSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm1 6v3h3v2h-3v5c0 1.1-.9 2-2 2s-2-.9-2-2v-5H6v-2h3V8h6zM6 18c0 1.65 1.35 3 3 3v-2c-.55 0-1-.45-1-1H6zm12 0h-2c0 .55-.45 1-1 1v2c1.65 0 3-1.35 3-3z"/></svg>`;
+const boltSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`;
 
 export const DEFAULT_TATTOOS: Tattoo[] = [
   { id: 'def_star', name: 'Classic Star', imageBase64: svgToDataUrl(starSvg), isDefault: true },
+  { id: 'def_heart', name: 'Tribal Heart', imageBase64: svgToDataUrl(heartTribalSvg), isDefault: true },
+  { id: 'def_rose', name: 'Minimal Rose', imageBase64: svgToDataUrl(roseSvg), isDefault: true },
+  { id: 'def_skull', name: 'Skull', imageBase64: svgToDataUrl(skullSvg), isDefault: true },
+  { id: 'def_dragon', name: 'Dragon', imageBase64: svgToDataUrl(dragonSvg), isDefault: true },
+  { id: 'def_butterfly', name: 'Butterfly', imageBase64: svgToDataUrl(butterflySvg), isDefault: true },
+  { id: 'def_anchor', name: 'Anchor', imageBase64: svgToDataUrl(anchorSvg), isDefault: true },
+  { id: 'def_bolt', name: 'Lightning', imageBase64: svgToDataUrl(boltSvg), isDefault: true },
 ];
